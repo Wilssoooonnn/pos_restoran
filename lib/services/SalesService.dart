@@ -13,14 +13,17 @@ class SalesService {
 
   Future<String> _getAuthToken() async {
     final token = await _storage.read(key: AuthService.ACCESS_TOKEN_KEY);
-    if (token == null)
+    if (token == null) {
       throw Exception('Sesi telah berakhir. Mohon login ulang.');
+    }
     return token;
   }
 
   Future<String> checkout({
     required String invoiceNumber,
     required int locationId,
+    required String method,        // ✅ Tambahan
+    required String? paymentCode,  // ✅ Tambahan
   }) async {
     if (_cartProvider.items.isEmpty) {
       throw Exception('Keranjang belanja masih kosong.');
@@ -32,6 +35,8 @@ class SalesService {
       final payload = {
         'invoice_number': invoiceNumber,
         'location_id': locationId,
+        'payment_method': method,     // ⬅ kirim ke backend
+        'payment_code': paymentCode,  // ⬅ kirim ke backend
         'total_amount': _cartProvider.totalAmount,
         'items': _cartProvider.salePayloadItems,
       };
@@ -57,6 +62,7 @@ class SalesService {
           e.response?.data['message'] ?? 'Transaksi gagal (Cek Stok/Log DB).';
       throw Exception(errorMessage);
     }
+
     return "Transaksi gagal: Respon tidak valid.";
   }
 }
